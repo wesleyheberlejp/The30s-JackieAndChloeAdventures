@@ -1,0 +1,61 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!78 &1
+TagManager:
+  serializedVersion: 2
+  tags: []
+  layers:
+  - Default
+  - TransparentFX
+  - Ignore Raycast
+  - Cenario
+  - Water
+  - UI
+  - Personagens
+  - PostProcessing
+  - Particulas
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  m_SortingLayers:
+  - name: Default
+    uniqueID: 0
+    locked: 0
+  - name: particulas
+    uniqueID: 2083483035
+    locked: 0
+  - name: Cenario
+    uniqueID: 1659314903
+    locked: 0
+  - name: Plataformas
+    uniqueID: 870610469
+    locked: 0
+  - name: Personagens
+    uniqueID: 4056334327
+    locked: 0
+  - name: Itens
+    uniqueID: 3894231853
+    locked: 0
+  - name: FiltrosImagem
+    uniqueID: 4142176977
+    locked: 0
