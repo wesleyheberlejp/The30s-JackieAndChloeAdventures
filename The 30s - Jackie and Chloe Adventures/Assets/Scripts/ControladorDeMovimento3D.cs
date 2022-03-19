@@ -17,6 +17,9 @@ public class ControladorDeMovimento3D : MonoBehaviour
     private bool estaCorrendo = false;
     private bool estaEmMovimento = false;
     private bool gravidadeHabilitada = false;
+    private bool estaAbaixado = false;
+    private bool estaPulando = false;
+    private bool estaCaminando = false;
 
     Vector3 velocity;
 
@@ -26,66 +29,121 @@ public class ControladorDeMovimento3D : MonoBehaviour
         var movimentoHorizontal = Input.GetAxisRaw("Horizontal");
         var movimentoVertical = Input.GetAxisRaw("Vertical");
         var velocidadeFinal = velocidade;
-        if (estaCorrendo)
+
+        IniciaImputs();
+
+        switch (estaPulando)
         {
-            velocidadeFinal = velocidade * MultiplicadoVelocidadeNaCorrida;
-            Debug.Log("Aumentou a velocidade");
-        }
-        var direcao = new Vector3(movimentoHorizontal, movimentoVertical, 0f).normalized;
-
-        AtualizaMovimento(movimentoHorizontal, movimentoVertical);
-
-        AtualizaAnimacao(movimentoHorizontal, movimentoVertical);
-
-        controladorPersonagem.Move(direcao * velocidadeFinal * Time.deltaTime);
-    }
-
-    public void AtualizaMovimento(float movimentoHorizontal, float movimentoVertical)
-    {
-        //controla o flip do sprite
-        if (Input.GetKeyDown("a"))
-        {
-            if (!personagemIsFliped)
-            {
-                personagemIsFliped = true;
-                FlipaSprite();
-            }
-        }
-
-        if (Input.GetKeyDown("d"))
-        {
-            if (personagemIsFliped)
-            {
-                personagemIsFliped = false;
-                FlipaSprite();
-            }
+            case false:
+                AdicionaMovimentaçãoNoChacao(movimentoHorizontal, movimentoVertical);
+                break;
+            case true:
+                AdicionaMovimentacaoPulo(movimentoHorizontal);
+                break;
         }
     }
 
-    public void AtualizaAnimacao(float movimentoHorizontal, float movimentoVertical)
+    public void IniciaImputs()
     {
-        if (movimentoHorizontal != 0 || movimentoVertical != 0)
-        {
-            controladorAnimacao.SetBool("Caminhando", true);
-        }
-        else
-        {
-            controladorAnimacao.SetBool("Caminhando", false);
+        if (Input.GetKeyDown("space")) {
+            estaPulando = true;
         }
 
         if (Input.GetKeyDown("left shift"))
         {
-            controladorAnimacao.SetBool("Correndo", true);
             estaCorrendo = true;
-        }
-        else if (Input.GetKeyUp("left shift"))
-        {
-            controladorAnimacao.SetBool("Correndo", false);
-            estaCorrendo = false;
         }
     }
 
+    public void AdicionaMovimentaçãoNoChacao(float movimentoHorizontal, float movimentoVertical)
+    {
+        bool movimento = PersonagemEstaEmMovimento(movimentoHorizontal, movimentoVertical);
+        var direcao = new Vector3(movimentoHorizontal, movimentoVertical, 0f).normalized;
+        controladorPersonagem.Move(direcao * velocidade * Time.deltaTime);
+        VerificaDirecaoMovimento(movimentoHorizontal);
 
+        switch (estaAbaixado)
+        {
+            case true:
+                    AdicionaMovimentosAbaixado();
+                break;
+            case false:
+                if (estaCorrendo)
+                {
+                    AtivaAnimacao("Correndo", movimento);
+                }
+                else
+                {
+                    AtivaAnimacao("Caminhando", movimento);
+                }
+                break;
+        }
+    }
+
+    private void VerificaDirecaoMovimento(float movimentoHorizontal)
+    {
+        if (movimentoHorizontal < 0)
+        {
+            personagemIsFliped = true;
+            FlipaSprite();
+        }
+        if(movimentoHorizontal > 0)
+        {
+            personagemIsFliped = false;
+            FlipaSprite();
+        }
+    }
+
+    public bool PersonagemEstaEmMovimento(float movimentoHorizontal, float movimentoVertical)
+    {
+        var movimento = false;
+        if (movimentoHorizontal != 0 || movimentoVertical != 0)
+        {
+            movimento = true;
+        }
+
+        return movimento;
+    }
+
+    public void AdicionaMovimentacaoCorrendo() { 
+    
+    }
+
+    public void AdicionaMovimentacaoPulo(float movimentoHorizontal) {
+        var direcao = new Vector3(movimentoHorizontal, 0f, 0f).normalized;
+
+        controladorPersonagem.Move(direcao * velocidade * Time.deltaTime);
+
+        AtivaAnimacao("Pulando", true);
+    }
+
+    public void AdicionaMovimentosAbaixado()
+    {
+        if (estaEmMovimento)
+        {
+            AtivaAnimacao("CaminhandoAbaixado", true);
+        }
+        else
+        {
+            AtivaAnimacao("Abaixado", true);
+        }
+    }
+
+    public void AtivaAnimacao(string nomeAnimacao, bool status)
+    {
+        controladorAnimacao.SetBool(nomeAnimacao, status);
+    }
+
+    public void AlertaAnimação(string message)
+    {
+        Debug.Log(message.Equals("PuloFinalizado"));
+
+        if (message.Equals("PuloFinalizado"))
+        {
+            estaPulando = false;
+            AtivaAnimacao("Pulando", false);
+        }
+    }
 
     public void FlipaSprite()
     {

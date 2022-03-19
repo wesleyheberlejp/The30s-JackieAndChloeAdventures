@@ -7,7 +7,6 @@ public class BalaArmaFlecha : BalaArma
     private void Start()
     {
         base.rb = this.rb;
-
         IniciaTiro(transform);
     }
 }
