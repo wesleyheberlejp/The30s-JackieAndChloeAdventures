@@ -45,13 +45,28 @@ public class ControladorDeMovimento3D : MonoBehaviour
 
     public void IniciaImputs()
     {
-        if (Input.GetKeyDown("space")) {
+        if (Input.GetKeyDown("space"))
+        {
             estaPulando = true;
         }
 
         if (Input.GetKeyDown("left shift"))
         {
             estaCorrendo = true;
+        }
+
+        if (Input.GetKeyUp("left shift"))
+        {
+            AtivaAnimacao("Correndo", false);
+            estaCorrendo = false;
+        }
+
+        if (Input.GetKeyUp("a") ||
+            Input.GetKeyUp("s") ||
+            Input.GetKeyUp("d") ||
+            Input.GetKeyUp("w"))
+        {
+            estaCaminando = false;
         }
     }
 
@@ -65,16 +80,25 @@ public class ControladorDeMovimento3D : MonoBehaviour
         switch (estaAbaixado)
         {
             case true:
-                    AdicionaMovimentosAbaixado();
+                AdicionaMovimentosAbaixado();
                 break;
             case false:
-                if (estaCorrendo)
+                if (movimento)
                 {
-                    AtivaAnimacao("Correndo", movimento);
+                    if (estaCorrendo)
+                    {
+                        AtivaAnimacao("Correndo", true);
+                    }
+                    else
+                    {
+                        estaCaminando = true;
+                        AtivaAnimacao("Caminhando", true);
+                    }
                 }
                 else
                 {
-                    AtivaAnimacao("Caminhando", movimento);
+                    AtivaAnimacao("Caminhando", false);
+                    AtivaAnimacao("Correndo", false);
                 }
                 break;
         }
@@ -87,7 +111,7 @@ public class ControladorDeMovimento3D : MonoBehaviour
             personagemIsFliped = true;
             FlipaSprite();
         }
-        if(movimentoHorizontal > 0)
+        if (movimentoHorizontal > 0)
         {
             personagemIsFliped = false;
             FlipaSprite();
@@ -105,11 +129,8 @@ public class ControladorDeMovimento3D : MonoBehaviour
         return movimento;
     }
 
-    public void AdicionaMovimentacaoCorrendo() { 
-    
-    }
-
-    public void AdicionaMovimentacaoPulo(float movimentoHorizontal) {
+    public void AdicionaMovimentacaoPulo(float movimentoHorizontal)
+    {
         var direcao = new Vector3(movimentoHorizontal, 0f, 0f).normalized;
 
         controladorPersonagem.Move(direcao * velocidade * Time.deltaTime);
@@ -155,6 +176,6 @@ public class ControladorDeMovimento3D : MonoBehaviour
         {
             this.transform.rotation = Quaternion.Euler(0f, 0f, 0f);
         }
-       
+
     }
 }
