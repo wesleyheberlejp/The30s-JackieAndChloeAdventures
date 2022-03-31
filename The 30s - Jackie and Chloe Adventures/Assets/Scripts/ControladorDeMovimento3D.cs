@@ -7,6 +7,8 @@ public class ControladorDeMovimento3D : MonoBehaviour
 {
 
     public float velocidade = 5f;
+    private float velocidadeInicial = 0f;
+    public float multiplicadorCorrendo = 1.3f;
     public float MultiplicadoVelocidadeNaCorrida = 2f;
     public CharacterController controladorPersonagem;
     private float gravidade = -9.81f;
@@ -17,19 +19,22 @@ public class ControladorDeMovimento3D : MonoBehaviour
     private bool estaCorrendo = false;
     private bool estaEmMovimento = false;
     private bool gravidadeHabilitada = false;
-    private bool estaAbaixado = false;
+    private bool estaAgachado = false;
     private bool estaPulando = false;
     private bool estaCaminando = false;
 
     Vector3 velocity;
+
+    void Start()
+    {
+        velocidadeInicial = velocidade;
+    }
 
     // Update is called once per frame
     void Update()
     {
         var movimentoHorizontal = Input.GetAxisRaw("Horizontal");
         var movimentoVertical = Input.GetAxisRaw("Vertical");
-        var velocidadeFinal = velocidade;
-
         IniciaImputs();
 
         switch (estaPulando)
@@ -50,15 +55,37 @@ public class ControladorDeMovimento3D : MonoBehaviour
             estaPulando = true;
         }
 
+        if (Input.GetKeyDown("left ctrl"))
+        {
+            var agachado = controladorAnimacao.GetBool("Agachado");
+            Debug.Log(agachado);
+            if (agachado)
+            {
+                estaAgachado = false;
+                SetAnimacao("Agachado", false);
+            }
+            else
+            {
+                estaAgachado = true;
+            }
+        }
+
         if (Input.GetKeyDown("left shift"))
         {
             estaCorrendo = true;
+            if (estaAgachado)
+            {
+                estaAgachado = false;
+                SetAnimacao("Agachado", false);
+            }
+            velocidade = velocidade * multiplicadorCorrendo;
         }
 
         if (Input.GetKeyUp("left shift"))
         {
-            AtivaAnimacao("Correndo", false);
+            SetAnimacao("Correndo", false);
             estaCorrendo = false;
+            velocidade = velocidadeInicial;
         }
 
         if (Input.GetKeyUp("a") ||
@@ -72,33 +99,34 @@ public class ControladorDeMovimento3D : MonoBehaviour
 
     public void AdicionaMovimentaçãoNoChacao(float movimentoHorizontal, float movimentoVertical)
     {
+
         bool movimento = PersonagemEstaEmMovimento(movimentoHorizontal, movimentoVertical);
         var direcao = new Vector3(movimentoHorizontal, movimentoVertical, 0f).normalized;
         controladorPersonagem.Move(direcao * velocidade * Time.deltaTime);
         VerificaDirecaoMovimento(movimentoHorizontal);
 
-        switch (estaAbaixado)
+        switch (estaAgachado)
         {
             case true:
-                AdicionaMovimentosAbaixado();
+                AdicionaMovimentosAgachado(movimento);
                 break;
             case false:
                 if (movimento)
                 {
                     if (estaCorrendo)
                     {
-                        AtivaAnimacao("Correndo", true);
+                        SetAnimacao("Correndo", true);
                     }
                     else
                     {
                         estaCaminando = true;
-                        AtivaAnimacao("Caminhando", true);
+                        SetAnimacao("Caminhando", true);
                     }
                 }
                 else
                 {
-                    AtivaAnimacao("Caminhando", false);
-                    AtivaAnimacao("Correndo", false);
+                    SetAnimacao("Caminhando", false);
+                    SetAnimacao("Correndo", false);
                 }
                 break;
         }
@@ -135,34 +163,34 @@ public class ControladorDeMovimento3D : MonoBehaviour
 
         controladorPersonagem.Move(direcao * velocidade * Time.deltaTime);
 
-        AtivaAnimacao("Pulando", true);
+        SetAnimacao("Pulando", true);
     }
 
-    public void AdicionaMovimentosAbaixado()
+    public void AdicionaMovimentosAgachado(bool movimento)
     {
-        if (estaEmMovimento)
+        if (movimento)
         {
-            AtivaAnimacao("CaminhandoAbaixado", true);
+            SetAnimacao("Caminhando", true);
+            SetAnimacao("Agachado", true);
         }
         else
         {
-            AtivaAnimacao("Abaixado", true);
+            SetAnimacao("Caminhando", false);
+            SetAnimacao("Agachado", true);
         }
     }
 
-    public void AtivaAnimacao(string nomeAnimacao, bool status)
+    public void SetAnimacao(string nomeAnimacao, bool status)
     {
         controladorAnimacao.SetBool(nomeAnimacao, status);
     }
 
     public void AlertaAnimação(string message)
     {
-        Debug.Log(message.Equals("PuloFinalizado"));
-
         if (message.Equals("PuloFinalizado"))
         {
             estaPulando = false;
-            AtivaAnimacao("Pulando", false);
+            SetAnimacao("Pulando", false);
         }
     }
 
