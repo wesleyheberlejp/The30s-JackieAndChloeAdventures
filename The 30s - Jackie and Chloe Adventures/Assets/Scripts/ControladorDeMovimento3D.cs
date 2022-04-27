@@ -9,21 +9,24 @@ public class ControladorDeMovimento3D : MonoBehaviour
     public float velocidade = 5f;
     private float velocidadeInicial = 0f;
     public float multiplicadorCorrendo = 1.3f;
-    public float MultiplicadoVelocidadeNaCorrida = 2f;
     public CharacterController controladorPersonagem;
+    public Collider detectorChao;
     private float gravidade = -9.81f;
     public Animator controladorAnimacao;
     public GameObject spritePersonagem;
+    public GameObject poeira;
+    public Transform poeiraEmptyPosition;
 
     private bool personagemIsFliped = false;
     private bool estaCorrendo = false;
     private bool estaEmMovimento = false;
-    private bool gravidadeHabilitada = false;
+    public bool gravidadeHabilitada = false;
     private bool estaAgachado = false;
     private bool estaPulando = false;
+    private bool estaNoChao = false;
     private bool estaCaminando = false;
 
-    Vector3 velocity;
+    private Vector3 velocity;
 
     void Start()
     {
@@ -37,6 +40,8 @@ public class ControladorDeMovimento3D : MonoBehaviour
         var movimentoVertical = Input.GetAxisRaw("Vertical");
         IniciaImputs();
 
+        //verificaEstaNoChao();
+
         switch (estaPulando)
         {
             case false:
@@ -46,6 +51,9 @@ public class ControladorDeMovimento3D : MonoBehaviour
                 AdicionaMovimentacaoPulo(movimentoHorizontal);
                 break;
         }
+
+        
+
     }
 
     public void IniciaImputs()
@@ -99,19 +107,24 @@ public class ControladorDeMovimento3D : MonoBehaviour
 
     public void AdicionaMovimentaçãoNoChacao(float movimentoHorizontal, float movimentoVertical)
     {
+        bool estaEmMovimento = PersonagemEstaEmMovimento(movimentoHorizontal, movimentoVertical);
+        
+        Vector3 movimento = transform.right * movimentoHorizontal + transform.forward * movimentoVertical;
+        controladorPersonagem.Move(movimento * velocidade * Time.deltaTime);
+        if (gravidadeHabilitada)
+        {
+            AplicaGravidade();
+        }
 
-        bool movimento = PersonagemEstaEmMovimento(movimentoHorizontal, movimentoVertical);
-        var direcao = new Vector3(movimentoHorizontal, movimentoVertical, 0f).normalized;
-        controladorPersonagem.Move(direcao * velocidade * Time.deltaTime);
         VerificaDirecaoMovimento(movimentoHorizontal);
 
         switch (estaAgachado)
         {
             case true:
-                AdicionaMovimentosAgachado(movimento);
+                AdicionaMovimentosAgachado(estaEmMovimento);
                 break;
             case false:
-                if (movimento)
+                if (estaEmMovimento)
                 {
                     if (estaCorrendo)
                     {
@@ -120,6 +133,7 @@ public class ControladorDeMovimento3D : MonoBehaviour
                     else
                     {
                         estaCaminando = true;
+                        //InvokeRepeating("IntanciaPoeira", 1, 0);
                         SetAnimacao("Caminhando", true);
                     }
                 }
@@ -130,6 +144,27 @@ public class ControladorDeMovimento3D : MonoBehaviour
                 }
                 break;
         }
+    }
+
+    //public void verificaEstaNoChao()
+    //{
+    //    detectorChao.
+    //}
+
+    public void AplicaGravidade()
+    {
+        velocity.y += gravidade * Time.deltaTime;
+        controladorPersonagem.Move(velocity);
+
+        if (estaNoChao)
+        {
+            velocity.y = 0f;
+        }
+    }
+
+    public void IntanciaPoeira()
+    {
+        Instantiate(poeira, poeiraEmptyPosition,true);
     }
 
     private void VerificaDirecaoMovimento(float movimentoHorizontal)
@@ -198,11 +233,11 @@ public class ControladorDeMovimento3D : MonoBehaviour
     {
         if (personagemIsFliped)
         {
-            this.transform.rotation = Quaternion.Euler(0f, 180f, 0f);
+            spritePersonagem.transform.rotation = Quaternion.Euler(-15f, 180f, 0f);
         }
         else
         {
-            this.transform.rotation = Quaternion.Euler(0f, 0f, 0f);
+            spritePersonagem.transform.rotation = Quaternion.Euler(15f, 0f, 0f);
         }
 
     }
